@@ -9,7 +9,6 @@ from fastapi.testclient import TestClient
 from fastapi_zero.app import app
 
 
-
 # aqui ele esta criando um cliente para fazer o test do app
 def test_root_deve_retornar_ola_mundo():
     """

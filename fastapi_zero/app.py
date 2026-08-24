@@ -3,6 +3,7 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
+
 # Envolucro do /
 @app.get('/')
 def read_root():
