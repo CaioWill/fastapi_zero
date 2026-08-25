@@ -40,11 +40,20 @@ quote-style = 'single'
 pythonpath = ['.']
 addopts = ['-p', 'no:warnings']
 
-[tool.taskipy.tasks]
-lint = 'ruff check'
-pre_format = 'ruff check --fix'
-format = 'ruff format'
-run = 'fastapi dev fastapi_zero/app.py'
-pre_test = 'task lint' # Executado antes do task test, caso der erro de formatacao ele n roda o test
-test = 'pytest -s -x --cov=fastapi_zero -vv'
-post_test = 'coverage html' # Executado depois do test, caso o teste rode sem nenhum erro ele gera o arquivo html do t
+
+[tool.poe.tasks]
+lint = "ruff check"
+format.sequence = [
+  { cmd = "ruff check --fix" },
+  { cmd = "ruff format" },
+]
+serve = "fastapi dev fast_zero/app.py"
+test.sequence = [
+  "lint",
+  { cmd = "pytest -s -x -vv $POE_EXTRA_ARGS" },
+  { cmd = "coverage html --show-contexts" },
+]
+
+
+[tool.poe]
+poetry_command = ""
