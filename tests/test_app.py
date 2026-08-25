@@ -5,7 +5,7 @@ from http import HTTPStatus
 # Importando o cliente de test
 from fastapi.testclient import TestClient
 
-# Imortando o arquivo que vai ser testado
+# Imortando o recurso que vai ser testado
 from fastapi_zero.app import app
 
 
@@ -14,15 +14,16 @@ def test_root_deve_retornar_ola_mundo():
     """
     Esse teste tem 3 etapas (AAA)
     - A: Arrange - arranjo
-    - A: Act     - Executa a coisa (o SUT) 
+    - A: Act     - Executa a coisa o SUT
     - A: Assert  - Garanta que A == A
     """
-    # Arranjo - oque precia antes, oque precisa para fazer
+
+    # Arranjo - criou o cliente
     client = TestClient(app)
 
-    # ACT - A coisa que esta sendo testada
+    # ACT - fez uma requisição get via cliente no caminho /
     response = client.get('/')
 
-    # assert - garanta que.
-    assert response.json() == {'message': 'Olá mundo!'}
+    # assert - garanta que. - viu se retorna 200 OK e se a mensagem é ola mundo
     assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'message': 'Olá mundo!'}
