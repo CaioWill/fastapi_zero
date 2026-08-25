@@ -46,7 +46,7 @@ format.sequence = [
   { cmd = "ruff check --fix" },
   { cmd = "ruff format" },
 ]
-serve = "fastapi dev fast_zero/app.py"
+server = "fastapi dev fastapi_zero/app.py"
 test.sequence = [
   "lint",
   { cmd = "pytest -s -x -vv --cov=fastapi_zero $POE_EXTRA_ARGS" },
