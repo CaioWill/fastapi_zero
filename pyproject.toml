@@ -21,7 +21,6 @@ dev = [
     "ruff (>=0.16.4,<0.17.0)",
     "pytest (>=9.1.1,<10.0.0)",
     "pytest-cov (>=7.1.0,<8.0.0)",
-    "taskipy (>=1.14.1,<2.0.0)"
 ]
 
 [tool.ruff]
@@ -50,8 +49,8 @@ format.sequence = [
 serve = "fastapi dev fast_zero/app.py"
 test.sequence = [
   "lint",
-  { cmd = "pytest -s -x -vv $POE_EXTRA_ARGS" },
-  { cmd = "coverage html --show-contexts" },
+  { cmd = "pytest -s -x -vv --cov=fastapi_zero $POE_EXTRA_ARGS" },
+  { cmd = "coverage html" },
 ]
 
 
