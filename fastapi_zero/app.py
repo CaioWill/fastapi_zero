@@ -90,3 +90,27 @@ def update_user(user_id: int, user: UserSchema):
     # o local do usuario na lista
     datebase[user_id - 1] = user_with_id
     return user_with_id
+
+
+@app.get(
+    '/users/{user_id}', status_code=HTTPStatus.OK, response_model=UserPlublic
+)
+def get_user_id(user_id: int):
+    if user_id < 1 or user_id > len(datebase):
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='Não encontrei'
+        )
+    return datebase[user_id - 1]
+
+
+@app.delete(
+    '/users/{user_id}',  # adicionamos a variavel, paramentro da url
+    status_code=HTTPStatus.OK,
+    response_model=UserPlublic,
+)
+def delete_user(user_id: int):
+    if user_id < 1 or user_id > len(datebase):
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail='Não encontrei'
+        )
+    return datebase.pop(user_id - 1)
