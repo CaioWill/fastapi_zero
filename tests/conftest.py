@@ -14,17 +14,34 @@ from fastapi.testclient import TestClient
 # Imposta o motor que se conectar com o DB
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import Session
+from sqlalchemy.pool import StaticPool
 
 # Imortando o recurso que vai ser testado
 from fastapi_zero.app import app
-from fastapi_zero.models import table_registry
+from fastapi_zero.database import get_session
+from fastapi_zero.models import User, table_registry
 
 
 # Fixture é um bloco reutilizavel, é tipo herança em class
 @pytest.fixture
-def client():
+def client(session):
     # Arranjo - criou o cliente
-    return TestClient(app)
+
+    # A dependecia tem que ser uma função
+    def get_session_override():
+        return session
+
+    # Sobre-escreve a dependecia em endpoints
+    # altera o get_session para a função de cima
+    with TestClient(app) as client:
+        app.dependency_overrides[get_session] = get_session_override
+        yield client
+
+    # desfaz o override da dependencia para o anterior
+    app.dependency_overrides.clear()
+
+    #   Isso é necessario para a sessão que for usada para os test
+    # Ser a do db em memoria, o sqlite, criada na func a baixo
 
 
 # Essa fixture abre uma sessão do db para os testes
@@ -33,7 +50,11 @@ def client():
 def session():
     # Cria a conexao com o banco de dados em memoria
     # Aqui é o connect do psycopg2
-    engine = create_engine('sqlite:///:memory:')
+    engine = create_engine(
+        'sqlite:///:memory:',
+        connect_args={'check_same_thread': False},
+        poolclass=StaticPool,
+    )
 
     # pega os metadados criados em tabela_registry e cria na engine
     # O (engine) é o db que as tabelas vao ficar
@@ -50,6 +71,17 @@ def session():
 
 
 # TUDO ISSO PARA CRIAR UM TEMPO FALSOOOOOOOO
+
+
+@pytest.fixture
+def created_user(session: Session):
+
+    user = User(username='bob', email='bob@gmail.com', password='senha123')
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    return user
 
 
 # Rodando em contexto - with

@@ -2,14 +2,19 @@ from http import HTTPStatus
 
 # Framework FastApi
 from fastapi import (
+    Depends,
     FastAPI,
     HTTPException,  # Biblioteca de erros, seria o Exception do python cru
 )
 from fastapi.responses import HTMLResponse
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
 
+from fastapi_zero.database import get_session
+from fastapi_zero.models import User
 from fastapi_zero.schemas import (
     Mensagem,
-    UserDB,
     UserList,
     UserPlublic,
     UserSchema,
@@ -31,7 +36,7 @@ def read_root():
 
 
 @app.get(
-    '/front',  # endpoint | caminho
+    '/front/',  # endpoint | caminho
     status_code=HTTPStatus.OK,
     response_class=HTMLResponse,  # Tipo do dado enviado
 )
@@ -53,21 +58,48 @@ def read_root_teste():
     response_model=UserPlublic,  # Schema de resposta
 )
 # oque vinher no parametro user é convertido no objeto UserSchema
-def create_user(user: UserSchema):
-    user_with_id = UserDB(
-        **user.model_dump(),  # transfoma o modelo em um dicionario de volta
-        id=len(datebase) + 1,
+def create_user(
+    user: UserSchema,
+    session: Session = Depends(get_session),
+    # com Depends, sempre que chama ela e exec
+):
+
+    # session = get_session() -> dessa for so seria executado a func uma vez
+
+    response = session.scalar(
+        select(User).where(
+            (User.username == user.username) | (User.email == user.email)
+        )
     )
 
-    datebase.append(user_with_id)
+    if response:
+        if response.username == user.username:
+            raise HTTPException(
+                status_code=HTTPStatus.CONFLICT,
+                detail='Username already exists',
+            )
+        elif response.email == user.email:
+            raise HTTPException(
+                HTTPStatus.CONFLICT, detail='Email already exixts'
+            )
 
-    return user_with_id
+    response = User(**user.model_dump())
+    session.add(response)
+    session.commit()
+    session.refresh(response)
+
+    return response
 
 
 @app.get('/users/', status_code=HTTPStatus.OK, response_model=UserList)
-def read_users():
+def read_users(
+    limit: int = 9, offset: int = 0, session: Session = Depends(get_session)
+):
+
+    users = session.scalars(select(User).limit(limit).offset(offset))
+
     # Como o modelo é um dict, temos re retonar em dict
-    return {'users': datebase}
+    return {'users': users}
 
 
 @app.put(
@@ -76,41 +108,62 @@ def read_users():
     response_model=UserPlublic,
 )
 # HTTP://localhost:8000/users/1 -> 1 é a variavel que definimos o paramentro
-def update_user(user_id: int, user: UserSchema):
-    user_with_id = UserDB(
-        **user.model_dump(),  # transfoma o modelo em dicionario de volta
-        id=user_id,
-    )
+def update_user(
+    user_id: int, user: UserSchema, session: Session = Depends(get_session)
+):
+    user_db = session.scalar(select(User).where(User.id == user_id))
 
-    if user_id < 1 or user_id > len(datebase):
+    if not user_db:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Não encontrei'
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found'
         )
 
-    # o local do usuario na lista
-    datebase[user_id - 1] = user_with_id
-    return user_with_id
+    try:
+        user_db.email = user.email
+        user_db.username = user.username
+        user_db.password = user.password
+
+        session.add(user_db)
+        session.commit()
+
+        return user_db
+
+    except IntegrityError:
+        raise HTTPException(
+            status_code=HTTPStatus.CONFLICT,
+            detail='User name or Email already exists',
+        )
 
 
 @app.get(
     '/users/{user_id}', status_code=HTTPStatus.OK, response_model=UserPlublic
 )
-def get_user_id(user_id: int):
-    if user_id < 1 or user_id > len(datebase):
+def get_user_id(user_id: int, session: Session = Depends(get_session)):
+
+    user_db = session.scalar(select(User).where(User.id == user_id))
+
+    if not user_db:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Não encontrei'
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found'
         )
-    return datebase[user_id - 1]
+
+    return user_db
 
 
 @app.delete(
     '/users/{user_id}',  # adicionamos a variavel, paramentro da url
     status_code=HTTPStatus.OK,
-    response_model=UserPlublic,
+    response_model=Mensagem,
 )
-def delete_user(user_id: int):
-    if user_id < 1 or user_id > len(datebase):
+def delete_user(user_id: int, session: Session = Depends(get_session)):
+    user_db = session.scalar(select(User).where(User.id == user_id))
+
+    if not user_db:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND, detail='Não encontrei'
+            status_code=HTTPStatus.NOT_FOUND, detail='User not found'
         )
-    return datebase.pop(user_id - 1)
+
+    session.delete(user_db)
+    session.commit()
+
+    return {'message': 'User Delete'}

@@ -30,5 +30,5 @@ class User:  # ORM
     )
     # onupdate - atualiza a data sempre que a linha é atualizada
     updated_at: Mapped[datetime] = mapped_column(
-        init=False, server_default= func.now(), onupdate=func.now()
+        init=False, server_default=func.now(), onupdate=func.now()
     )
