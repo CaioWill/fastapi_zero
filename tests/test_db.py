@@ -6,20 +6,22 @@ from fastapi_zero.models import User
 
 
 def test_user_db(session, mock_db_time):
+    # chamando a função de alteração do created_at
     with mock_db_time(model=User) as time:
-        user_new = User(username='test', email='test@test', password='secret')
+        user_new = User(username='bob', email='bob@test', password='secret')
 
-        session.add(user_new)  # adicionando o user no db
+        session.add(user_new)  # insert user_new na sessao
         session.commit()  # Commitando no db
 
         # o scarlars convert tudo do banco em objeto python de forma escalar
         # aqui e tipo o fatchall
-        user = session.scalar(select(User).where(User.username == 'test'))
+        user = session.scalar(select(User).where(User.username == 'bob'))
 
+    # asdict transforma o resultado do select em um dicionario
     assert asdict(user) == {
         'id': 1,
-        'username': 'test',
-        'email': 'test@test',
+        'username': 'bob',
+        'email': 'bob@test',
         'password': 'secret',
         'created_at': time,
     }

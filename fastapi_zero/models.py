@@ -1,13 +1,12 @@
 # Como nao temos typo data padrao no py importamos o dt
 from datetime import datetime
 
-from sqlalchemy import func
-
 # func coloca antes de funcoes nativas como o SUM, AVG, NOW(), COUNT ...
-from sqlalchemy.orm import Mapped, mapped_column, registry
+from sqlalchemy import func
 
 # O Mapped mapeia o tipo em python para enviar o aceitavel para o db
 # STR em python e TEXT em postgres
+from sqlalchemy.orm import Mapped, mapped_column, registry
 
 # Registry registra tableas
 
@@ -21,6 +20,7 @@ table_registry = registry()
 class User:  # ORM
     __tablename__ = 'user'
 
+    # init - seria uma coluna sem o NOT NULL
     id: Mapped[int] = mapped_column(init=False, primary_key=True)
     username: Mapped[str] = mapped_column(unique=True)
     email: Mapped[str] = mapped_column(unique=True)
@@ -28,6 +28,3 @@ class User:  # ORM
     created_at: Mapped[datetime] = mapped_column(
         init=False, server_default=func.now()
     )
-
-
-# init - seria uma coluna sem o NOT NULL

@@ -1,4 +1,4 @@
-#  Esse arquivo é onde coloca as fixtures para
+#   Esse arquivo é onde coloca as fixtures para
 # deixar os codigos de teste mais limpo, sem
 # precisar importar para os outros test já
 # que é uma configuração propria do pytest
@@ -27,39 +27,50 @@ def client():
     return TestClient(app)
 
 
+# Essa fixture abre uma sessão do db para os testes
+# ele envia os dados de test e os apaga sozinho
 @pytest.fixture
 def session():
     # Cria a conexao com o banco de dados em memoria
     # Aqui é o connect do psycopg2
     engine = create_engine('sqlite:///:memory:')
 
-    # Pega os metadados dos 'modelos-class-tabelas' e as crias no engine
+    # pega os metadados criados em tabela_registry e cria na engine
     # O (engine) é o db que as tabelas vao ficar
     table_registry.metadata.create_all(engine)
 
     # Abrir uma seção de troca entre o db e codigo
     # aqui seria a criação da sessao para fazer os executs do psycopg2
     with Session(engine) as session:
-        # yield ele inicia a sessao e fica em processo ate acabar
+        # yield "pausa" a função e manda o dado para a função que chamou
         yield session
 
-    # Deleta todas as tabelas
+    # Deleta todas as tabelas do tabela_registry do engine - db
     table_registry.metadata.drop_all(engine)
 
 
 # TUDO ISSO PARA CRIAR UM TEMPO FALSOOOOOOOO
 
 
-# Rodando em contexto
+# Rodando em contexto - with
+# função para
 @contextmanager
 def _mock_db_time(*, model, time=datetime(2026, 8, 21)):
+
+    # um gacho para fazer alterações 
+    # tem que ter os tres parametros mesmo sem usar para o event funcionar
     def fake_time_hook(mapper, connection, target):
-        # hasattr o objeto que veio tem o atributo
+        # (Connection) é a conexão
+        # (Target) é o objeto
+
+        # hasattr verifica se objeto que veio tem o atributo antes de replace
         if hasattr(target, 'created_at'):
             target.created_at = time
 
+    # é tipo o trigger do postgre no python
     event.listen(model, 'before_insert', fake_time_hook)
 
+    # Pausa a função e manda o time para a função que chamou
     yield time
 
     event.remove(model, 'before_insert', fake_time_hook)
