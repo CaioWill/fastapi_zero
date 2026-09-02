@@ -40,22 +40,20 @@ def test_create_user(client):
 
 
 def test_creat_user_conflited(client, created_user):
+    # conflict in username
     response = client.post(
         '/users/',
-        json={
-            'username': 'bob',
-            'email': 'test@test.com',
-            'password': 'test'
-        }
+        json={'username': 'bob', 'email': 'test@test.com', 'password': 'test'},
     )
 
+    # conflict in email
     response2 = client.post(
         '/users/',
         json={
             'username': 'test',
             'email': 'bob@gmail.com',
-            'password': 'test'
-        }
+            'password': 'test',
+        },
     )
 
     assert response.status_code == HTTPStatus.CONFLICT
@@ -63,16 +61,10 @@ def test_creat_user_conflited(client, created_user):
 
 
 # Test para conferir o modelo de resposta do get users
-def test_read_users_with_not_users(client):
-    response = client.get('/users/')
-
-    assert response.status_code == HTTPStatus.OK
-    # ele sempre dropa o banco, ai ele retorna vazio
-    assert response.json() == {'users': []}
-
-
-def test_read_users_with_users(client, created_user):
-    response = client.get('/users/')
+def test_read_users(client, created_user, token):
+    response = client.get(
+        '/users/', headers={'Authorization': f'Bearer {token}'}
+    )
 
     user_schema = UserPlublic.model_validate(created_user).model_dump()
 
@@ -81,9 +73,10 @@ def test_read_users_with_users(client, created_user):
     assert response.json() == {'users': [user_schema]}
 
 
-def test_update_user(client, created_user):
+def test_update_user(client, created_user, token):
     response = client.put(
         '/users/1',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'alice',
             'email': 'alice@example.com',
@@ -92,6 +85,7 @@ def test_update_user(client, created_user):
     )
     response2 = client.put(
         '/users/2',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'alice',
             'email': 'alice@example.com',
@@ -106,11 +100,12 @@ def test_update_user(client, created_user):
         'id': 1,
     }
 
-    assert response2.status_code == HTTPStatus.NOT_FOUND
+    assert response2.status_code == HTTPStatus.UNAUTHORIZED
 
 
 # Erro de integridade, ver se os uniques estão funcionando
-def test_update_integrity_erro(client, created_user):
+def test_update_integrity_erro(client, created_user, token):
+    # Post do novo user
     client.post(
         '/users',
         json={
@@ -120,8 +115,10 @@ def test_update_integrity_erro(client, created_user):
         },
     )
 
+    # Campo com unique igual
     res_update = client.put(
         f'/users/{created_user.id}',
+        headers={'Authorization': f'Bearer {token}'},
         json={
             'username': 'fausto',
             'email': 'fausto@gmail.com',
@@ -149,12 +146,32 @@ def test_get_user_id(client, created_user):
     assert response2.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_delete_user(client, created_user):
+def test_delete_user(client, created_user, token):
 
-    response = client.delete('/users/1')
+    response = client.delete(
+        f'/users/{created_user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
     response2 = client.delete('/users/2')
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User Delete'}
 
-    assert response2.status_code == HTTPStatus.NOT_FOUND
+    assert response2.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_get_token(client, created_user):
+    response = client.post(
+        '/token',
+        data={
+            'username': created_user.email,
+            'password': created_user.clean_password,
+        },
+    )
+
+    token = response.json()
+
+    assert response.status_code == HTTPStatus.OK
+    assert 'access_token' in token
+    assert token['token_type'] == 'Bearer'

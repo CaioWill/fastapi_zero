@@ -20,6 +20,7 @@ from sqlalchemy.pool import StaticPool
 from fastapi_zero.app import app
 from fastapi_zero.database import get_session
 from fastapi_zero.models import User, table_registry
+from fastapi_zero.security import get_password_hash
 
 
 # Fixture é um bloco reutilizavel, é tipo herança em class
@@ -76,10 +77,20 @@ def session():
 @pytest.fixture
 def created_user(session: Session):
 
-    user = User(username='bob', email='bob@gmail.com', password='senha123')
+    password = 'senha123'
+    user = User(
+        username='bob',
+        email='bob@gmail.com',
+        password=get_password_hash(password),
+    )
+
     session.add(user)
     session.commit()
     session.refresh(user)
+
+    # gambiarra, para conseguir a senha para fazer a verificação
+    # não pessiste no banco
+    user.clean_password = password
 
     return user
 
@@ -114,3 +125,16 @@ def _mock_db_time(*, model, time=datetime(2026, 8, 21)):
 @pytest.fixture
 def mock_db_time():
     return _mock_db_time
+
+
+@pytest.fixture
+def token(client, created_user):
+    response = client.post(
+        '/token',
+        data={
+            'username': created_user.email,
+            'password': created_user.clean_password,
+        },
+    )
+
+    return response.json()['access_token']

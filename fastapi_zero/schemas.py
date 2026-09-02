@@ -26,3 +26,11 @@ class UserList(BaseModel):
     #  Esse modelo diz que vai retonar um dic com dados em uma
     # list e esses dados tem o modelo UserPublic
     users: list[UserPlublic]
+
+
+class UserCredencil(BaseModel): ...
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
