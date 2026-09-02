@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 # Valalida in|out put de dados conferindo se estão no padrão pre definido
@@ -28,9 +28,13 @@ class UserList(BaseModel):
     users: list[UserPlublic]
 
 
-class UserCredencil(BaseModel): ...
-
-
 class Token(BaseModel):
     access_token: str
     token_type: str
+
+
+# Schema querry
+class FilterPage(BaseModel):
+    # coloca um valor minimo e um default
+    limit: int = Field(ge=0, default=9)
+    offset: int = Field(ge=0, default=0)

@@ -11,16 +11,15 @@ from sqlalchemy.orm import Session
 
 from fastapi_zero.database import get_session
 from fastapi_zero.models import User
-
-SECRET_KEY = 'your-secret-key'
-ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+from fastapi_zero.settings import Settings
 
 # Checa o head e ver se tem um bearer token
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/token')
 
 # Descite o melhor tipo de hash
 pwd_context = PasswordHash.recommended()
+
+settings = Settings()
 
 
 # Faz a criptografia da senha em hash
@@ -37,18 +36,22 @@ def create_access_token(data: dict):
     to_encode = data.copy()
 
     expire = datetime.now(tz=ZoneInfo('UTC')) + timedelta(
-        ACCESS_TOKEN_EXPIRE_MINUTES
+        settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )
 
     to_encode.update({'exp': expire})
 
-    encoded_jwt = encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = encode(
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
 
     return encoded_jwt
 
 
+# func para Autenticar o login e usuarios existem
 def get_current_user(
     session: Session = Depends(get_session),
+    # Garante que um token foi enviado
     token: str = Depends(oauth2_scheme),
 ):
     # Constant de erro
@@ -59,9 +62,12 @@ def get_current_user(
     )
 
     try:
-        playload = decode(token, SECRET_KEY, algorithms=ALGORITHM)
+        # Descodando o TOKEN jwt
+        playload = decode(
+            token, settings.SECRET_KEY, algorithms=settings.ALGORITHM
+        )
 
-        # Pega o email do dict
+        # Pega o email do playload
         subject_email = playload.get('sub')
 
         # Garatir que o email veio no sub
@@ -73,6 +79,8 @@ def get_current_user(
 
     # confere que o email esta no db
     user = session.scalar(select(User).where(User.email == subject_email))
+
+    # Se o email nao estiver no db
     if not user:
         raise credentials_exception
 

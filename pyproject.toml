@@ -34,7 +34,7 @@ extend-exclude = ['migrations']
 
 [tool.ruff.lint]
 preview = true
-select = ['I', 'F', 'E', 'W', 'PL', 'PT']
+select = ['I', 'F', 'E', 'W', 'PL', 'PT', 'FAST']
 
 [tool.ruff.format]
 preview = true
@@ -54,7 +54,7 @@ format.sequence = [
 server = "fastapi dev fastapi_zero/app.py"
 test.sequence = [
   "lint",
-  { cmd = "pytest -s -x -vv --cov=fastapi_zero $POE_EXTRA_ARGS" },
+  { cmd = "pytest -x -vv --cov=fastapi_zero" },
   { cmd = "coverage html" },
 ]
 
