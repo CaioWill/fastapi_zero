@@ -39,6 +39,29 @@ def test_create_user(client):
     }
 
 
+def test_creat_user_conflited(client, created_user):
+    response = client.post(
+        '/users/',
+        json={
+            'username': 'bob',
+            'email': 'test@test.com',
+            'password': 'test'
+        }
+    )
+
+    response2 = client.post(
+        '/users/',
+        json={
+            'username': 'test',
+            'email': 'bob@gmail.com',
+            'password': 'test'
+        }
+    )
+
+    assert response.status_code == HTTPStatus.CONFLICT
+    assert response2.status_code == HTTPStatus.CONFLICT
+
+
 # Test para conferir o modelo de resposta do get users
 def test_read_users_with_not_users(client):
     response = client.get('/users/')
