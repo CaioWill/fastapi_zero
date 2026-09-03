@@ -1,8 +1,8 @@
 # Gerenciador de Tarefas — API (FastAPI do Zero)
 
-> 🚧 Projeto em desenvolvimento — acompanhando o curso [FastAPI do Zero](https://fastapidozero.dunossauro.com/) (Dunossauro) Material escrito.
-> [FastAPI do Zero](https://www.youtube.com/playlist?list=PLOQgLBuj2-3KT9ZWvPmaGFQ0KjIez0403) (Dunossauro) Material em video
-> [FastAPI do Zero](https://www.youtube.com/playlist?list=PLR2rHG9gyzbI) (Conteúdo Complementar)
+> 🚧 Projeto em desenvolvimento — acompanhando o curso [FastAPI do Zero](https://fastapidozero.dunossauro.com/) (Dunossauro) Material escrito.  
+> [FastAPI do Zero - aula em videos](https://www.youtube.com/playlist?list=PLOQgLBuj2-3KT9ZWvPmaGFQ0KjIez0403) (Dunossauro) Material em video.  
+> [Conteúdo Complementar](https://www.youtube.com/playlist?list=PLR2rHG9gyzbI) (Dunossauro)  
 
 API REST para gerenciamento de tarefas e usuários, construída com FastAPI.
 
