@@ -21,20 +21,20 @@ Python, FastAPI, Pydantic, SQLAlchemy, Alembic, Pytest
 
 Crie um arquivo `.env` na raiz do projeto com as seguintes variáveis:
 
-\`\`\`env
+```env
 DATABASE_URL=          # conexão com o banco de dados
 SECRET_KEY=             # chave usada para assinar/verificar o JWT
 ALGORITHM=               # algoritmo de assinatura do JWT (ex: HS256)
 ACCESS_TOKEN_EXPIRE_MINUTES=   # tempo de validade do token de acesso, em minutos
-\`\`\`
+```
 
 ## Como rodar
 
-\`\`\`bash
+```bash
 poetry install
 poetry shell
 poetry server
-\`\`\`
+```
 
 ---
 
