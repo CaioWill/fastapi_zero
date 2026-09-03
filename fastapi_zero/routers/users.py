@@ -10,7 +10,7 @@ from fastapi import (
 )
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from fastapi_zero.database import get_session
 from fastapi_zero.models import User
@@ -30,18 +30,18 @@ router = APIRouter(tags=['users'], prefix='/users')
 # prefix -> cria um prefixo para todos os enpoins dessa Router
 
 # cria a variavel com o typo e o metadata
-T_Session = Annotated[Session, Depends(get_session)]
+Session = Annotated[AsyncSession, Depends(get_session)]
 Current_user = Annotated[User, Depends(get_current_user)]
 
 
 @router.get('/', status_code=HTTPStatus.OK, response_model=UserList)
-def read_users(
-    session: T_Session,
+async def read_users(
+    session: Session,
     current_user: Current_user,
     filter_user: Annotated[FilterPage, Query()],
 ):
 
-    users = session.scalars(
+    users = await session.scalars(
         select(User).limit(filter_user.limit).offset(filter_user.offset)
     )
 
@@ -52,9 +52,9 @@ def read_users(
 @router.get(
     '/{user_id}', status_code=HTTPStatus.OK, response_model=UserPlublic
 )
-def get_user_id(user_id: int, session: T_Session):
+async def get_user_id(user_id: int, session: Session):
 
-    user_db = session.scalar(select(User).where(User.id == user_id))
+    user_db = await session.scalar(select(User).where(User.id == user_id))
 
     if not user_db:
         raise HTTPException(
@@ -70,15 +70,15 @@ def get_user_id(user_id: int, session: T_Session):
     response_model=UserPlublic,  # Schema de resposta
 )
 # oque vinher no parametro user é convertido no objeto UserSchema
-def create_user(
+async def create_user(
     user: UserSchema,
-    session: T_Session,
+    session: Session,
     # com Depends, sempre que chama ela e exec
 ):
 
     # session = get_session() -> dessa for so seria executado a func uma vez
 
-    response = session.scalar(
+    response = await session.scalar(
         select(User).where(
             (User.username == user.username) | (User.email == user.email)
         )
@@ -101,8 +101,8 @@ def create_user(
         password=get_password_hash(user.password),
     )
     session.add(response)
-    session.commit()
-    session.refresh(response)
+    await session.commit()
+    await session.refresh(response)
 
     return response
 
@@ -113,10 +113,10 @@ def create_user(
     response_model=UserPlublic,
 )
 # HTTP://localhost:8000/users/1 -> 1 é a variavel que definimos o paramentro
-def update_user(
+async def update_user(
     user_id: int,
     user: UserSchema,
-    session: T_Session,
+    session: Session,
     current_user: Current_user,
 ):
     # Garantir que o usuario so pode alterar sua propria conta
@@ -125,17 +125,19 @@ def update_user(
             status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions'
         )
 
-    try:
-        current_user.email = user.email
-        current_user.username = user.username
-        current_user.password = get_password_hash(user.password)
+    current_user.email = user.email
+    current_user.username = user.username
+    current_user.password = get_password_hash(user.password)
 
+    try:
         session.add(current_user)
-        session.commit()
+        await session.commit()
+        await session.refresh(current_user)
 
         return current_user
 
     except IntegrityError:
+        await session.rollback()
         raise HTTPException(
             status_code=HTTPStatus.CONFLICT,
             detail='User name or Email already exists',
@@ -147,9 +149,9 @@ def update_user(
     status_code=HTTPStatus.OK,
     response_model=Mensagem,
 )
-def delete_user(
+async def delete_user(
     user_id: int,
-    session: T_Session,
+    session: Session,
     current_user: Current_user,
 ):
 
@@ -159,6 +161,6 @@ def delete_user(
         )
 
     session.delete(current_user)
-    session.commit()
+    await session.commit()
 
     return {'message': 'User Delete'}

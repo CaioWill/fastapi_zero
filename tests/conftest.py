@@ -7,13 +7,14 @@ from contextlib import contextmanager
 from datetime import datetime
 
 import pytest
+import pytest_asyncio
 
 # Importando o cliente de test
 from fastapi.testclient import TestClient
 
 # Imposta o motor que se conectar com o DB
-from sqlalchemy import create_engine, event
-from sqlalchemy.orm import Session
+from sqlalchemy import event
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.pool import StaticPool
 
 # Imortando o recurso que vai ser testado
@@ -48,36 +49,43 @@ def client(session):
 
 # Essa fixture abre uma sessão do db para os testes
 # ele envia os dados de test e os apaga sozinho
-@pytest.fixture
-def session():
+
+
+# abre uma fixture async
+@pytest_asyncio.fixture
+async def session():
     # Cria a conexao com o banco de dados em memoria
     # Aqui é o connect do psycopg2
-    engine = create_engine(
-        'sqlite:///:memory:',
+    engine = create_async_engine(
+        'sqlite+aiosqlite:///:memory:',
         connect_args={'check_same_thread': False},
         poolclass=StaticPool,
     )
 
     # pega os metadados criados em tabela_registry e cria na engine
     # O (engine) é o db que as tabelas vao ficar
-    table_registry.metadata.create_all(engine)
+    async with engine.begin() as conn:
+        # como as tabelas não podem ser criadas de forma asincrona
+        # usamos o run_sync para rodar de foram sincrona
+        await conn.run_sync(table_registry.metadata.create_all)
 
     # Abrir uma seção de troca entre o db e codigo
     # aqui seria a criação da sessao para fazer os executs do psycopg2
-    with Session(engine) as session:
+    async with AsyncSession(engine, expire_on_commit=False) as session:
         # yield "pausa" a função e manda o dado para a função que chamou
         yield session
 
     # Deleta todas as tabelas do tabela_registry do engine - db
-    table_registry.metadata.drop_all(engine)
+    async with engine.begin() as conn:
+        # da mesma forma de criar tambem e para apagar
+        await conn.run_sync(table_registry.metadata.drop_all)
 
 
 # TUDO ISSO PARA CRIAR UM TEMPO FALSOOOOOOOO
 
 
-@pytest.fixture
-def created_user(session: Session):
-
+@pytest_asyncio.fixture
+async def created_user(session: AsyncSession):
     password = 'senha123'
     user = User(
         username='bob',
@@ -86,8 +94,8 @@ def created_user(session: Session):
     )
 
     session.add(user)
-    session.commit()
-    session.refresh(user)
+    await session.commit()
+    await session.refresh(user)
 
     # gambiarra, para conseguir a senha para fazer a verificação
     # não pessiste no banco
