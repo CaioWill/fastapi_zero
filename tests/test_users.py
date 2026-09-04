@@ -26,7 +26,11 @@ def test_creat_user_conflited(client, created_user):
     # conflict in username
     response = client.post(
         '/users/',
-        json={'username': 'bob', 'email': 'test@test.com', 'password': 'test'},
+        json={
+            'username': 'test0',
+            'email': 'test@test.com',
+            'password': 'test',
+        },
     )
 
     # conflict in email
@@ -34,7 +38,7 @@ def test_creat_user_conflited(client, created_user):
         '/users/',
         json={
             'username': 'test',
-            'email': 'bob@gmail.com',
+            'email': 'test0@test.com',
             'password': 'test',
         },
     )
@@ -86,6 +90,21 @@ def test_update_user(client, created_user, token):
     assert response2.status_code == HTTPStatus.UNAUTHORIZED
 
 
+def test_update_user_with_other_user(client, created_user, other_user, token):
+    res_update = client.put(
+        f'/users/{other_user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+        json={
+            'username': 'fausto',
+            'email': 'fausto@gmail.com',
+            'password': 'test',
+        },
+    )
+
+    assert res_update.status_code == HTTPStatus.FORBIDDEN
+    assert res_update.json() == {'detail': 'Not enough permissions'}
+
+
 # Erro de integridade, ver se os uniques estão funcionando
 def test_update_integrity_erro(client, created_user, token):
     # Post do novo user
@@ -121,8 +140,8 @@ def test_get_user_id(client, created_user):
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
-        'username': 'bob',
-        'email': 'bob@gmail.com',
+        'username': 'test0',
+        'email': 'test0@test.com',
         'id': 1,
     }
 
@@ -142,3 +161,13 @@ def test_delete_user(client, created_user, token):
     assert response.json() == {'message': 'User Delete'}
 
     assert response2.status_code == HTTPStatus.UNAUTHORIZED
+
+
+def test_delet_user_with_other_user(client, created_user, other_user, token):
+    res_update = client.delete(
+        f'/users/{other_user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert res_update.status_code == HTTPStatus.FORBIDDEN
+    assert res_update.json() == {'detail': 'Not enough permissions'}

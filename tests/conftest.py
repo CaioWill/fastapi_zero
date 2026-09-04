@@ -6,6 +6,7 @@
 from contextlib import contextmanager
 from datetime import datetime
 
+import factory
 import pytest
 import pytest_asyncio
 
@@ -87,11 +88,23 @@ async def session():
 @pytest_asyncio.fixture
 async def created_user(session: AsyncSession):
     password = 'senha123'
-    user = User(
-        username='bob',
-        email='bob@gmail.com',
-        password=get_password_hash(password),
-    )
+    user = UserFactory(password=get_password_hash(password))
+
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
+    # gambiarra, para conseguir a senha para fazer a verificação
+    # não pessiste no banco
+    user.clean_password = password
+
+    return user
+
+
+@pytest_asyncio.fixture
+async def other_user(session: AsyncSession):
+    password = 'senha123'
+    user = UserFactory(password=get_password_hash(password))
 
     session.add(user)
     await session.commit()
@@ -152,3 +165,21 @@ def token(client, created_user):
 @pytest.fixture
 def settings():
     return Settings()
+
+
+class UserFactory(factory.Factory):
+    class Meta:
+        model = User
+
+    username = factory.Sequence(lambda n: f'test{n}')
+
+    # ele e greado depois dos outros campos
+    # o lazy puxa o objeto
+    email = factory.LazyAttribute(lambda obj: f'{obj.username}@test.com')
+
+    password = factory.LazyAttribute(lambda obj: f'@{obj.username}#')
+
+
+@pytest.fixture(autouse=True)
+def reset_user_factory_sequence():
+    UserFactory.reset_sequence(force=True)

@@ -27,7 +27,7 @@ def read_root():
     status_code=HTTPStatus.OK,
     response_class=HTMLResponse,  # Tipo do dado enviado
 )
-def read_root_teste():
+def read_root_teste():  # pragma: no cover
     return """
     <html>
       <head>
