@@ -12,6 +12,7 @@ app.include_router(auth.router)
 app.include_router(users.router)
 
 
+# endpoint inicial
 @app.get(
     '/',  # No caminho /
     status_code=HTTPStatus.OK,
@@ -22,6 +23,7 @@ def read_root():
     return {'message': 'Olá mundo!'}
 
 
+# endpoint com html
 @app.get(
     '/front/',  # endpoint | caminho
     status_code=HTTPStatus.OK,

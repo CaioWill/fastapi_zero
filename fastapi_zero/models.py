@@ -11,11 +11,12 @@ from sqlalchemy.orm import Mapped, mapped_column, registry
 # Registry registra tableas
 
 
-# Variavel pra gegistar tablas
+# Variavel para gegistrar as tabelas -> onde irar ficar os metadados
 table_registry = registry()
 
 
-# Tabela User
+# Tabela User -> registrada na variavel como dataclass
+# Dataclass -> class com metadados
 @table_registry.mapped_as_dataclass
 class User:  # ORM
     __tablename__ = 'user'

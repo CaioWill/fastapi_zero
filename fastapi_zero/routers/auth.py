@@ -27,18 +27,20 @@ UserT = Annotated[User, Depends(get_current_user)]
 OAuth2form = Annotated[OAuth2PasswordRequestForm, Depends()]
 
 
+# Endpoint para criação do token - Login
 @router.post('/token', response_model=Token)
 async def login_for_access_token(
-    # Um fomulario de login proprio do FastAPI
     session: Session,
+    # Um fomulario de login ja feito do FastAPI
     form_data: OAuth2form,
 ):
-    # Usando o email para login
+    # Buscando o email que veio do formulario no db
     user = await session.scalar(
         select(User).where(User.email == form_data.username)
-    )
+    )  # Mo formulario vem como username
+    # Mas a gente oque vai usar
 
-    # Conferindo se o email existe
+    # Conferindo se o email existe no db
     if not user:
         raise HTTPException(
             status_code=HTTPStatus.UNAUTHORIZED,
@@ -52,13 +54,14 @@ async def login_for_access_token(
             detail='Incorrect email or password',
         )
 
-    # Criando o Token jwt usando o sub email
+    # Criando o Token jwt enviando o sub
     access_token = create_access_token({'sub': user.email})
 
-    # Enviando o token
+    # Enviando o token criado
     return {'access_token': access_token, 'token_type': 'Bearer'}
 
 
+# Endpoint para atualizar o token
 @router.post('/refresh_token', response_model=Token)
 async def refresh_access_token(user: UserT):
     new_access_token = create_access_token(data={'sub': user.email})

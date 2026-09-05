@@ -19,6 +19,7 @@ class UserPlublic(BaseModel):
     username: str
     email: EmailStr
     id: int
+    # permite que o pydantic leia dados de um atributo de objeto comum
     model_config = ConfigDict(from_attributes=True)
 
 
@@ -28,6 +29,7 @@ class UserList(BaseModel):
     users: list[UserPlublic]
 
 
+# Schema do Token
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -37,4 +39,6 @@ class Token(BaseModel):
 class FilterPage(BaseModel):
     # coloca um valor minimo e um default
     limit: int = Field(ge=0, default=9)
+
+    # o Field é para colocar um valor minimo e o default
     offset: int = Field(ge=0, default=0)
