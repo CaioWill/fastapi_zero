@@ -37,7 +37,7 @@ async def login_for_access_token(
     # Buscando o email que veio do formulario no db
     user = await session.scalar(
         select(User).where(User.email == form_data.username)
-    )  # Mo formulario vem como username
+    )  # No formulario vem como username
     # Mas a gente oque vai usar
 
     # Conferindo se o email existe no db

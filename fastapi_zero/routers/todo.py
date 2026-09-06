@@ -77,7 +77,7 @@ async def detele_todo(todo_id: int, user: UserT, session: Session):
             status_code=HTTPStatus.NOT_FOUND, detail='Task not found'
         )
 
-    session.delete(todo)
+    await session.delete(todo)
     await session.commit()
 
     return {'message': 'Task has been deleted successfully'}
