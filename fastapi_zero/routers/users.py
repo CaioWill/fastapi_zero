@@ -58,7 +58,6 @@ async def read_users(
 async def get_user_id(
     user_id: int,
     session: Session,
-    current_user: Current_user,  # So consegue pesquisar se tiver logado
 ):
 
     # Faz a busca usando o id como parametro

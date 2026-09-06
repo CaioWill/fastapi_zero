@@ -1,5 +1,7 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
+from fastapi_zero.models import TodoState
+
 
 # Valalida in|out put de dados conferindo se estão no padrão pre definido
 # Schemas ou (models) | classe para definir a forma esperada de um dado
@@ -42,3 +44,34 @@ class FilterPage(BaseModel):
 
     # o Field é para colocar um valor minimo e o default
     offset: int = Field(ge=0, default=0)
+
+
+class TodoSchema(BaseModel):
+    title: str
+    description: str
+
+    # Estado da tarefa, definido em uma clase numerada
+    # Tambem funciona como um check
+    state: TodoState = Field(default=TodoState.todo)
+
+
+class TodoPublic(TodoSchema):
+    id: int
+
+
+class TodoList(BaseModel):
+    todos: list[TodoPublic]
+
+
+class TodoPatch(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    state: TodoState | None = None
+
+
+# Schema querry
+class FilterTodos(FilterPage):
+    title: str | None = Field(default=None, min_length=3, max_length=20)
+    # limita a quantidade de letras escritas
+    description: str | None = None
+    state: TodoState | None = None
