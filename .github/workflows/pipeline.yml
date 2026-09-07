@@ -25,7 +25,14 @@ jobs:
         run: poetry install
 
       - name: Execuntando o Linter
-        run: poetry run ruff check
+        run: poetry lint
 
       - name: Executando os testes
-        run: poetry run pytest -x -vv
+        run: poetry test
+
+    # definindo as variavei de ambiente que o gitactions vai usar dos secrets
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL}}
+      SECRET_KEY: ${{ secrets.SECRET_KEY}}
+      ALGORITHM: ${{ secrets.ALGORITHM}}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES}}
