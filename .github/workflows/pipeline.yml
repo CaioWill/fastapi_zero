@@ -17,3 +17,15 @@ jobs:
     
       - name: Instalar o Poetry
         run: pipx install poetry
+
+      - name: Instalando as dependễncias
+        run: poetry install
+
+      - name: ativando ambiente virtual
+        run: poetry shell
+
+      - name: Execuntando o Linter
+        run: poetrt lint
+
+      - name: Executando os testes
+        run: poetry test 
