@@ -6,7 +6,7 @@ jobs:
   # nome do job
   test:
     # qual so
-    runs-on: ubunto-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Instalar o Python
@@ -21,11 +21,8 @@ jobs:
       - name: Instalando as dependễncias
         run: poetry install
 
-      - name: ativando ambiente virtual
-        run: poetry shell
-
       - name: Execuntando o Linter
-        run: poetrt lint
+        run: poetry run ruff check
 
       - name: Executando os testes
-        run: poetry test 
+        run: poetry run pytest -x -vv
