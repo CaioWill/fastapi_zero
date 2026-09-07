@@ -6,4 +6,11 @@ jobs:
   # nome do job
   test:
     # qual so
-    runs_on: ubunto-latest
+    runs-on: ubunto-latest
+
+    staps:
+      - name: Instalar o Python
+        # action pronta
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
