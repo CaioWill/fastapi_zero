@@ -10,11 +10,11 @@ jobs:
 
     steps:
       - name: Copia os arquivos do repositorio
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Instalar o Python
         # Uses action pronta
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.13'
     
@@ -25,10 +25,10 @@ jobs:
         run: poetry install
 
       - name: Execuntando o Linter
-        run: poetry lint
+        run: poetry run ruff check
 
       - name: Executando os testes
-        run: poetry test
+        run: poetry run pytest -x -vv
 
     # definindo as variavei de ambiente que o gitactions vai usar dos secrets
     env:
