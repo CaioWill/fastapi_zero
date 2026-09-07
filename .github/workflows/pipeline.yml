@@ -8,9 +8,12 @@ jobs:
     # qual so
     runs-on: ubunto-latest
 
-    staps:
+    steps:
       - name: Instalar o Python
-        # action pronta
+        # Uses action pronta
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
+    
+      - name: Instalar o Poetry
+        run: pipx install poetry
