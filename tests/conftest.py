@@ -16,7 +16,7 @@ from fastapi.testclient import TestClient
 # Imposta o motor que se conectar com o DB
 from sqlalchemy import event
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.pool import StaticPool
+from testcontainers.postgres import PostgresContainer
 
 # Imortando o recurso que vai ser testado
 from fastapi_zero.app import app
@@ -48,21 +48,18 @@ def client(session):
     # Ser a do db em memoria, o sqlite, criada na func a baixo
 
 
+# Sobe o container com o db antes de rodar os teses
+@pytest.fixture(scope='session')
+def engine():
+    with PostgresContainer('postgres:16', driver='psycopg') as postgres:
+        yield create_async_engine(postgres.get_connection_url())
+
+
 # Essa fixture abre uma sessão do db para os testes
 # ele envia os dados de test e os apaga sozinho
-
-
 # abre uma fixture async
 @pytest_asyncio.fixture
-async def session():
-    # Cria a conexao com o banco de dados em memoria
-    # Aqui é o connect do psycopg2
-    engine = create_async_engine(
-        'sqlite+aiosqlite:///:memory:',
-        connect_args={'check_same_thread': False},
-        poolclass=StaticPool,
-    )
-
+async def session(engine):
     # pega os metadados criados em tabela_registry e cria na engine
     # O (engine) é o db que as tabelas vao ficar
     async with engine.begin() as conn:
