@@ -15,7 +15,8 @@ from fastapi_zero.settings import Settings
 
 # Checa se veio na url um bearer token
 # Se não tiver direciona para a url definida
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/token')
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl='auth/token', refreshUrl='auth/refresh_token')
 
 # Descite por defull o melhor tipo de hash
 pwd_context = PasswordHash.recommended()

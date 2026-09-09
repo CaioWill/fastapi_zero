@@ -1,23 +1,27 @@
 # Gerenciador de Tarefas — API (FastAPI do Zero)
 
-> 🚧 Projeto em desenvolvimento — acompanhando o curso [FastAPI do Zero](https://fastapidozero.dunossauro.com/) (Dunossauro) Material escrito.  
-> [FastAPI do Zero - aula em videos](https://www.youtube.com/playlist?list=PLOQgLBuj2-3KT9ZWvPmaGFQ0KjIez0403) (Dunossauro) Material em video.  
-> [Conteúdo Complementar](https://www.youtube.com/playlist?list=PLR2rHG9gyzbI) (Dunossauro)  
+Projeto desenvolvido acompanhando o curso:
+[FastAPI do Zero](https://fastapidozero.dunossauro.com/) (Dunossauro)  
+[aulas em vídeo](https://www.youtube.com/playlist?list=PLOQgLBuj2-3KT9ZWvPmaGFQ0KjIez0403)  
+[conteúdo complementar](https://www.youtube.com/playlist?list=PLR2rHG9gyzbI)  
 
-API REST para gerenciamento de tarefas e usuários, construída com FastAPI.
+API REST completa para gerenciamento de tarefas e usuários, construída com FastAPI, com autenticação, persistência de dados, testes automatizados, containerização e pipeline de integração contínua.
 
-## Funcionalidades atuais
+## Funcionalidades
 
 - CRUD de usuários
 - CRUD de tarefas
 - Autenticação e autorização com JWT
-- Persistência de dados com SQLAlchemy ORM (SQLite no momento — migração para PostgreSQL prevista mais adiante no curso)
+- Persistência de dados com SQLAlchemy ORM e PostgreSQL
 - Migrações de banco de dados com Alembic
-- Estrutura de projeto refatorada (aula 7)
+- Testes automatizados com Pytest (cobertura de código monitorada)
+- Containerização com Docker e Docker Compose
+- Integração contínua (CI) com GitHub Actions — testes rodam automaticamente a cada push
+- Deploy realizado com sucesso no Fly.io (atualmente fora do ar, para evitar custos de manutenção contínua)
 
 ## Tecnologias
 
-Python, FastAPI, Pydantic, SQLAlchemy, Alembic, Pytest
+Python, FastAPI, Pydantic, SQLAlchemy, Alembic, Pytest, PostgreSQL, Docker, GitHub Actions
 
 ## Variáveis de ambiente
 
@@ -36,6 +40,18 @@ ACCESS_TOKEN_EXPIRE_MINUTES=   # tempo de validade do token de acesso, em minuto
 poetry install
 poetry shell
 poetry server
+```
+
+## Como rodar com Docker
+
+```bash
+docker compose up -d
+```
+
+## Como rodar os testes
+
+```bash
+poetry test
 ```
 
 ---
